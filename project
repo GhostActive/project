@@ -1,0 +1,157 @@
+#!/bin/bash
+#
+# project - creates new project folder for pentesting
+#
+# Author
+#     GhostActive, https://github.com/ghostactive
+#
+# Copyright (C)
+#     2022 GhostActive
+#
+# License
+#     GNU General Public License v3.0
+#
+# Version
+#     1.0
+#
+
+# Hint: Use $HOME instead of '~'. Folder names are quoted before used to allow
+#       spaces in folder names. Therefore '~' will not be replaced to current
+#       user's home directory.
+
+# The varibale SRC_FOLDER contains the root path for template folders. At
+# runtime files and sub folders can be copied from a specified template folder
+# to the current project folder. The default template folder is defined by
+# DEFAULT_TEMPLATE. If the path for SRC_FOLDER doesn't exist, then copying items
+# from template folder is skipped. To disable the use of templates in general,
+# then set SRC_FOLDER to "" (empty string).
+SRC_FOLDER="$HOME/Templates"
+
+# Default name of used template folder. If a sub folder in $SRC_FOLDER with
+# this name exists, it's content is copied automatically to new project folders.
+# If the folder does't exist, then it's ignored and no template is used.
+DEFAULT_TEMPLATE="default"
+
+# Root folder in which new project folders will be created. At runtime in the
+# DST_FOLDER a new sub folder with given name from user input is created. If the
+# DST_FOLDER doesn't exist, it's created automatically.
+DST_FOLDER="$HOME/Projects"
+
+# The most recently created project folder can be refrenced by a link. The
+# variable LINK_NAME contains the full path of where the link should be created,
+# e.g. in DST_FOLDER with the name 'current'. To disable the creattion of a
+# link, set the value to "" (empty string).
+LINK_NAME="$DST_FOLDER/current"
+
+# Documentation
+USAGE="project - creates new project folder
+
+Usage: project [OPTION]... [STRING] ...
+
+All non alphanumeric characters in the given name are replaced by '-' (dash).
+Multiple dashes in the name are reduced to single one, e.g '--' or '---' gets
+to '-'. Dashes at the begin and the end of a name are removed, too.
+
+Options
+    -h      Print this help message.
+
+    -t FOLDER
+            Used template FOLDER to copy content when creating new project
+            folder instead of the default one.
+
+    -v      Show version number.
+
+Examples
+    # Create new project folder
+    project samplecustomer sampleproject
+
+    # Create new project folder with current date as prefix
+    project \$(date +'%F') samplecustomer sampleproject"
+
+# No arguments
+test $# == 0 && echo "$USAGE" && exit 0
+
+# Process arguments
+while getopts ":ht:v" option; do
+	case $option in
+        h) echo "$USAGE"; exit 0;;
+		t) TEMPLATE_FOLDER="${OPTARG}"; shift 2;;
+        v) echo "project, version 1.0, 2022"
+           echo "GNU General Public License v3.0"
+           echo "Copyright (C) 2021-2022 GhostActive, https://github.com/ghostactive"
+           exit 0;;
+		-) case $OPTARG in
+			help) echo "$USAGE"; exit 0;;
+		esac
+	esac
+done
+
+test ! "$TEMPLATE_FOLDER" && TEMPLATE_FOLDER=$DEFAULT_TEMPLATE
+
+if [[ ! "$@" || "$@" == "-t" ]]
+then
+	echo "Wrong usage: Missing project name"
+	echo "$USAGE"
+	exit 1
+fi
+
+if [[ ! -d "$DST_FOLDER" ]]
+then 
+	echo "Note: Can't find project root folder '$DST_FOLDER'. The folder will be created ..."
+	mkdir -vp $DST_FOLDER
+fi
+
+# Build name for new project folder
+REPLACEMENT="-"
+PATTERN="[:alnum:]"
+
+RESULT=$(echo "$@" | tr -d "\"'" | tr -cs "$PATTERN" "$REPLACEMENT")
+RESULT="${RESULT/#$REPLACEMENT}"
+RESULT="${RESULT/%$REPLACEMENT}"
+
+PROJECT_FOLDER="$DST_FOLDER/$RESULT"
+
+if [[ -d "$PROJECT_FOLDER" ]]
+then
+	echo "Warning: Project folder with same name already exists '$PROJECT_FOLDER'."
+	exit 1
+fi
+
+echo "Create new project folder ..."
+
+mkdir -vp $PROJECT_FOLDER
+
+if [[ ! -d "$PROJECT_FOLDER" ]]
+then
+	echo "Warning: Something went wrong when creating new project folder."
+	exit 1
+fi
+
+# Check if templates are enabled
+if [[ "$SRC_FOLDER" ]]
+then
+	TEMPLATE_FOLDER="$SRC_FOLDER/$TEMPLATE_FOLDER"
+
+	if [[ -d "$TEMPLATE_FOLDER" ]]
+	then
+		echo "Found template folder '$TEMPLATE_FOLDER'"
+		cp -vr "$TEMPLATE_FOLDER"/* "$PROJECT_FOLDER"
+	else
+		echo "Warning: Can't find template folder '$TEMPLATE_FOLDER'".
+	fi
+fi
+
+# Check if links are enabled
+if [[ "$LINK_NAME" ]]
+then
+	echo "Update link '$LINK_NAME' ..."
+
+	if [[ -L "$LINK_NAME" ]]
+	then
+		ln -sfnv "$PROJECT_FOLDER" "$LINK_NAME"
+	else
+		ln -sv "$PROJECT_FOLDER" "$LINK_NAME"
+	fi
+fi
+
+exit 0
