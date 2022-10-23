@@ -31,7 +31,7 @@ The configuration of used path is handled within the script itself. To change th
 #       spaces in folder names. Therefore '~' will not be replaced to current
 #       user's home directory.
 
-# The varibale SRC_FOLDER contains the root path for template folders. At
+# The variable SRC_FOLDER contains the root path for template folders. At
 # runtime files and sub folders can be copied from a specified template folder
 # to the current project folder. The default template folder is defined by
 # DEFAULT_TEMPLATE. If the path for SRC_FOLDER doesn't exist, then copying items
@@ -41,7 +41,7 @@ SRC_FOLDER="$HOME/Templates"
 
 # Default name of used template folder. If a sub folder in $SRC_FOLDER with
 # this name exists, it's content is copied automatically to new project folders.
-# If the folder does't exist, then it's ignored and no template is used.
+# If the folder doesn't exist, then it's ignored and no template is used.
 DEFAULT_TEMPLATE="default"
 
 # Root folder in which new project folders will be created. At runtime in the
@@ -49,9 +49,9 @@ DEFAULT_TEMPLATE="default"
 # DST_FOLDER doesn't exist, it's created automatically.
 DST_FOLDER="$HOME/Projects"
 
-# The most recently created project folder can be refrenced by a link. The
+# The most recently created project folder can be referenced by a link. The
 # variable LINK_NAME contains the full path of where the link should be created,
-# e.g. in DST_FOLDER with the name 'current'. To disable the creattion of a
+# e.g. in DST_FOLDER with the name 'current'. To disable the creation of a
 # link, set the value to "" (empty string).
 LINK_NAME="$DST_FOLDER/current"
 ```
